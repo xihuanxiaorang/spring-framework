@@ -1,8 +1,10 @@
 pluginManagement {
 	repositories {
-		gradlePluginPortal()
-		maven { url 'https://repo.spring.io/plugins-release' }
-	}
+        maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url "https://maven.aliyun.com/repository/gradle-plugin" }
+        gradlePluginPortal()
+        maven { url 'https://repo.spring.io/plugins-release' }
+    }
 }
 
 plugins {
@@ -46,13 +48,15 @@ settings.gradle.projectsLoaded {
 	gradleEnterprise {
 		buildScan {
 			File buildDir = settings.gradle.rootProject.getBuildDir()
-			buildDir.mkdirs()
-			new File(buildDir, "build-scan-uri.txt").text = "(build scan not generated)"
-			buildScanPublished { scan ->
-				if (buildDir.exists()) {
-					new File(buildDir, "build-scan-uri.txt").text = "${scan.buildScanUri}\n"
-				} 
-			}
-		}
-	}
+            buildDir.mkdirs()
+            new File(buildDir, "build-scan-uri.txt").text = "(build scan not generated)"
+            buildScanPublished { scan ->
+                if (buildDir.exists()) {
+                    new File(buildDir, "build-scan-uri.txt").text = "${scan.buildScanUri}\n"
+                }
+            }
+        }
+    }
 }
+include 'spring-source-debug'
+
