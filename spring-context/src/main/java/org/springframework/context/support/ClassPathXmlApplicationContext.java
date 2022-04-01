@@ -139,8 +139,10 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 			throws BeansException {
 
 		super(parent);
+		// 设置配置文件路径，在此处通过环境中的属性替换路径中的占位符，如"spring-${name:dev}.xml"
 		setConfigLocations(configLocations);
 		if (refresh) {
+			// 开始刷新容器工作
 			refresh();
 		}
 	}

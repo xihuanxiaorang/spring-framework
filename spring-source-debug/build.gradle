@@ -14,6 +14,8 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     // 引入Spring核心容器
     compile(project(":spring-context"))
+    // 引入mysql驱动
+    implementation 'mysql:mysql-connector-java:8.0.28'
 }
 
 test {

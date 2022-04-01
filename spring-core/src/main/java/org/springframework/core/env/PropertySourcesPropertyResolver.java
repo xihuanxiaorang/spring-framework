@@ -77,17 +77,21 @@ public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 	@Nullable
 	protected <T> T getProperty(String key, Class<T> targetValueType, boolean resolveNestedPlaceholders) {
 		if (this.propertySources != null) {
+			// 遍历属性源(其实就是之前创建环境时添加进来的系统属性变量[systemProperties]和系统环境变量[systemEnvironment])
 			for (PropertySource<?> propertySource : this.propertySources) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Searching for key '" + key + "' in PropertySource '" +
 							propertySource.getName() + "'");
 				}
+				// 从属性源找到key所对应的值
 				Object value = propertySource.getProperty(key);
 				if (value != null) {
 					if (resolveNestedPlaceholders && value instanceof String) {
+						// 还支持解析嵌套的占位符
 						value = resolveNestedPlaceholders((String) value);
 					}
 					logKeyFound(key, propertySource, value);
+					// 使用ConversionService接口中的convert方法转换获取到的属性值
 					return convertValueIfNecessary(value, targetValueType);
 				}
 			}
