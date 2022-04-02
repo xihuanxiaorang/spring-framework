@@ -253,6 +253,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			if (!typeCheckOnly) {
+				// 将指定的 bean 标记为已创建（或即将创建），这允许 bean 工厂优化其缓存以重复创建指定的 bean。
 				markBeanAsCreated(beanName);
 			}
 
@@ -266,6 +267,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
+				// 先创建并初始化当前bean所依赖的bean实例
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
@@ -299,9 +301,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							throw ex;
 						}
 					});
+					// 获取bean实例本身或FactoryBean创建的对象
 					beanInstance = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
 				}
-
+				// 这是一个原型，创建一个新实例
 				else if (mbd.isPrototype()) {
 					// It's a prototype -> create a new instance.
 					Object prototypeInstance = null;
@@ -351,7 +354,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				beanCreation.end();
 			}
 		}
-
+		// 将Object类型的bean类型转换为T类型
 		return adaptBeanInstance(name, beanInstance, requiredType);
 	}
 
@@ -1829,7 +1832,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		if (mbd != null) {
 			mbd.isFactoryBean = true;
 		} else {
-			// 先从池子中获取以前调用FactoryBean中的getObject方法创建好的bean实例，如果获取不到，则创建.
+			// 先从factoryBeanObjectCache池子中获取以前调用FactoryBean中的getObject方法创建好的bean实例，如果获取不到，则创建.
 			object = getCachedObjectForFactoryBean(beanName);
 		}
 		if (object == null) {

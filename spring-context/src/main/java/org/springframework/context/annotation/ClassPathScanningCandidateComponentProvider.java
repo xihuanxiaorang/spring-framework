@@ -407,10 +407,10 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
-			// 拼接之后的包扫描路径 => classpath*:top/xiaorang/spring/**/*.class
+			// 拼接之后的包扫描路径 => 如：classpath*:top/xiaorang/spring/**/*.class
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
-			// 通过包扫描路径获取类文件资源
+			// 获取包扫描路径下的class文件资源
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
@@ -423,7 +423,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
 						// 判断是否是候选组件，过滤出标注@Component注解的组件
 						if (isCandidateComponent(metadataReader)) {
-							// 构建出Bean定义信息
+							// 构建出bean定义信息
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setSource(resource);
 							if (isCandidateComponent(sbd)) {

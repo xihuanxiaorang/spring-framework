@@ -1,6 +1,6 @@
 package top.xiaorang.spring.factorybean;
 
-import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.SmartFactoryBean;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,7 +9,7 @@ import java.sql.DriverManager;
  * @author liulei
  * @date 2022/4/1
  */
-public class ConnectionFactory implements FactoryBean<Connection> {
+public class ConnectionFactory implements SmartFactoryBean<Connection> {
 	private String driverClassName;
 	private String url;
 	private String username;
@@ -24,6 +24,11 @@ public class ConnectionFactory implements FactoryBean<Connection> {
 	@Override
 	public Class<?> getObjectType() {
 		return Connection.class;
+	}
+
+	@Override
+	public boolean isEagerInit() {
+		return true;
 	}
 
 	public String getDriverClassName() {

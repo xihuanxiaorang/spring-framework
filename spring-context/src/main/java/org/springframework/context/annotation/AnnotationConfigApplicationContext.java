@@ -16,9 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.util.Arrays;
-import java.util.function.Supplier;
-
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -27,6 +24,9 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.metrics.StartupStep;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * Standalone application context, accepting <em>component classes</em> as input &mdash;
@@ -66,8 +66,12 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext() {
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
+		// 创建用于读取注解bean定义信息的读取器
+		// 同时注册了很多后置处理器的bean定义信息
+		// 其中以两个核心的后置处理器(ConfigurationClassPostProcessor【配置类后置处理器】 + AutowiredAnnotationBeanPostProcessor【自动装配后置处理器】)最为重要
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
+		// 创建类路径下的bean定义信息扫描器
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -88,8 +92,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		// 创建容器
+		// 同时注册了很多后置处理器的bean定义信息
+		// 其中以两个核心的后置处理器(ConfigurationClassPostProcessor【配置类后置处理器】 + AutowiredAnnotationBeanPostProcessor【自动装配后置处理器】)最为重要
 		this();
+		// 注册主配置类的bean定义信息
 		register(componentClasses);
+		// 刷新容器(这一步很重要)
 		refresh();
 	}
 
@@ -165,6 +174,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
 		StartupStep registerComponentClass = this.getApplicationStartup().start("spring.context.component-classes.register")
 				.tag("classes", () -> Arrays.toString(componentClasses));
+		// 通过bean定义信息读取器来注册组件的bean定义信息
 		this.reader.register(componentClasses);
 		registerComponentClass.end();
 	}

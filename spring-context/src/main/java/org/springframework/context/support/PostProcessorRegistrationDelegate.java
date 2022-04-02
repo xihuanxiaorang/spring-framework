@@ -88,6 +88,10 @@ final class PostProcessorRegistrationDelegate {
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
+			// 首先，从工厂的 beanDefinitionMap 中取出 BeanDefinitionRegistryPostProcessor 接口类型的 beanName 集合
+			// 在注解模式下此处有一个值【internalConfigurationAnnotationProcessor】
+			// 循环遍历 beanName 集合，判断是否同时实现了 PriorityOrdered 接口，如果是的话使用getBean方法从容器中获取实现类的单例对象(其实就是创建bean实例)
+			// 在注解模式下最终会在容器中创建一个 【ConfigurationClassPostProcessor】的单例对象，该后置处理器在下面的方法中会用到，用于加载配置类包路径下的所有bean定义信息
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
@@ -98,12 +102,16 @@ final class PostProcessorRegistrationDelegate {
 			}
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			registryProcessors.addAll(currentRegistryProcessors);
-			// 如果是使用注解的方式，则会执行ConfigurationClassPostProcessor中的postProcessBeanDefinitionRegistry方法
-			// 向容器中注册bean定义信息
+			// 在注解模式下，则会执行 配置类后置处理器【ConfigurationClassPostProcessor】 中的 postProcessBeanDefinitionRegistry 方法
+			// 用于加载配置类包路径下的所有bean定义信息
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry, beanFactory.getApplicationStartup());
 			currentRegistryProcessors.clear();
 
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
+			// 接下来，从工厂的 beanDefinitionMap 中取出 BeanDefinitionRegistryPostProcessor 接口类型的 beanName 集合
+			// 在注解模式下此处有一个默认值【internalConfigurationAnnotationProcessor】
+			// 判断是否同时实现了 Ordered 接口，如果是的话使用getBean方法从容器中获取实现类的单例对象(其实就是创建bean实例)，遍历的过程发现并不满足 Ordered 接口
+			// 与上面的方法类似，不明白Spring为什么没有对方法进行抽取🤔🤔🤔
 			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
 				if (!processedBeans.contains(ppName) && beanFactory.isTypeMatch(ppName, Ordered.class)) {
@@ -117,6 +125,7 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 
 			// Finally, invoke all other BeanDefinitionRegistryPostProcessors until no further ones appear.
+			// 最后，与上面方法极其类似，看上面就好
 			boolean reiterate = true;
 			while (reiterate) {
 				reiterate = false;
@@ -137,20 +146,22 @@ final class PostProcessorRegistrationDelegate {
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
-		}
-
-		else {
+		} else {
 			// Invoke factory processors registered with the context instance.
 			invokeBeanFactoryPostProcessors(beanFactoryPostProcessors, beanFactory);
 		}
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let the bean factory post-processors apply to them!
+		// 首先，从工厂的 beanDefinitionMap 中取出 BeanFactoryPostProcessor 接口类型的 beanName 集合
+		// 在注解模式下此处有两个默认值【internalConfigurationAnnotationProcessor】【internalEventListenerProcessor】
+		// 其中【internalConfigurationAnnotationProcessor】已经在上面已经被执行过了，下面的流程中将不再执行
 		String[] postProcessorNames =
 				beanFactory.getBeanNamesForType(BeanFactoryPostProcessor.class, true, false);
 
 		// Separate between BeanFactoryPostProcessors that implement PriorityOrdered,
 		// Ordered, and the rest.
+		// 将 BeanFactoryPostProcessor 后置处理器按照 PriorityOrdered > Ordered > nonOrdered 分开并顺序执行，与上面类似没有什么特别的
 		List<BeanFactoryPostProcessor> priorityOrderedPostProcessors = new ArrayList<>();
 		List<String> orderedPostProcessorNames = new ArrayList<>();
 		List<String> nonOrderedPostProcessorNames = new ArrayList<>();
@@ -208,7 +219,7 @@ final class PostProcessorRegistrationDelegate {
 		// list of all declined PRs involving changes to PostProcessorRegistrationDelegate
 		// to ensure that your proposal does not result in a breaking change:
 		// https://github.com/spring-projects/spring-framework/issues?q=PostProcessorRegistrationDelegate+is%3Aclosed+label%3A%22status%3A+declined%22
-
+		// 从工厂的 beanDefinitionMap 中取出 BeanPostProcessor 接口类型的 beanName 集合
 		String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
 
 		// Register BeanPostProcessorChecker that logs an info message when

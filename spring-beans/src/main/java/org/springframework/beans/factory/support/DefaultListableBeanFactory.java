@@ -895,10 +895,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 									getAccessControlContext());
 						}
 						else {
+							// 如果FactoryBean实现的是FactoryBean接口的子接口SmartFactoryBean
+							// 并且重写isEagerInit方法时返回true，则在容器初始化的时候就已经调用getObject方法创建bean实例
+							// 而不是等到调用ctx.getBean方法时才去调用getObject方法创建实例
 							isEagerInit = (factory instanceof SmartFactoryBean &&
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
 						if (isEagerInit) {
+							// 从工厂中获取bean实例(这一步很重要)
 							getBean(beanName);
 						}
 					}
