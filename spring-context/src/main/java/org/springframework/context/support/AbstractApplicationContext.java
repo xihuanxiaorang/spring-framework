@@ -523,7 +523,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
-			// 刷新以及获取bean工厂，如果bean工厂不存在，则创建bean工厂（这一步最为重要）
+			// 刷新以及获取bean工厂，如果bean工厂不存在，则创建bean工厂（这一步很重要）
 			// 创建的bean工厂类型为DefaultListableBeanFactory
 			// 在注解模式下就只是创建工厂，设置工厂id；
 			// *********************但是在xml模式下创建工厂的同时还会解析xml配置文件，加载所有的beanDefinitions(bean的定义信息)********************
@@ -541,7 +541,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
 				// Invoke factory processors registered as beans in the context.
-				// ******************执行所有的bean工厂后置处理器（这一步最为重要）***********************
+				// ******************执行所有的bean工厂后置处理器（这一步很重要）***********************
 				// 如果是使用注解的方式，则会加载配置类上包扫描路径下的所有bean定义信息
 				invokeBeanFactoryPostProcessors(beanFactory);
 

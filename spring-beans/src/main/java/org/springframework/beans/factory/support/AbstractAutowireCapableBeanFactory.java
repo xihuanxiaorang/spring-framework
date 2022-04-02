@@ -1388,8 +1388,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (pvs == null) {
 				pvs = mbd.getPropertyValues();
 			}
-			// 循环遍历InstantiationAwareBeanPostProcessor后置处理器接口的实现类，调用实现类中的postProcessProperties方法
-			// 自动装配功能  -> 当使用注解方式的时候，有一个关键的实现类 AutowiredAnnotationBeanPostProcessor 后置处理器，使用自动注入的方式给属性赋值
+			// 循环遍历 InstantiationAwareBeanPostProcessor 后置处理器接口的实现类，调用实现类中的 postProcessProperties 方法
+			// 自动装配功能  -> 当注解模式下，有一个关键的实现类 AutowiredAnnotationBeanPostProcessor 后置处理器，使用自动注入的方式给属性赋值
 			for (InstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().instantiationAware) {
 				PropertyValues pvsToUse = bp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 				if (pvsToUse == null) {

@@ -700,11 +700,13 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				}
 			}
 			else {
+				// 自动注入时获取set方法的参数
 				arguments = resolveMethodArguments(method, bean, beanName);
 			}
 			if (arguments != null) {
 				try {
 					ReflectionUtils.makeAccessible(method);
+					// 利用反射技术调用set方法给属性赋值
 					method.invoke(bean, arguments);
 				}
 				catch (InvocationTargetException ex) {
@@ -740,6 +742,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 				currDesc.setContainingClass(bean.getClass());
 				descriptors[i] = currDesc;
 				try {
+					// 解决依赖注入
 					Object arg = beanFactory.resolveDependency(currDesc, beanName, autowiredBeans, typeConverter);
 					if (arg == null && !this.required) {
 						arguments = null;
