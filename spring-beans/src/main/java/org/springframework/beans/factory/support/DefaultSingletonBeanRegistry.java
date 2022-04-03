@@ -126,8 +126,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	protected void addSingleton(String beanName, Object singletonObject) {
 		synchronized (this.singletonObjects) {
+			// 将实例化、赋值和初始化都完成的bean实例放入一级缓存中
 			this.singletonObjects.put(beanName, singletonObject);
+			// 从三级缓存中删除bean
 			this.singletonFactories.remove(beanName);
+			// 从二级缓存中删除bean
 			this.earlySingletonObjects.remove(beanName);
 			this.registeredSingletons.add(beanName);
 		}
@@ -169,23 +172,35 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		// Quick check for existing instance without full singleton lock
-		// 一级缓存
+		// 此处是解决循环依赖最为关键的地方，需要观察这个三个缓存(一级缓存【singletonObjects】二级缓存【earlySingletonObjects】三级缓存【singletonFactories】)的状态变化
+		// 尝试从一级缓存【singletonObjects】中获取bean实例
 		Object singletonObject = this.singletonObjects.get(beanName);
+		// 一级缓存中不存在，并且当前单例bean处在正在创建中
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
-			// 二级缓存
+			// 尝试从二级缓存【earlySingletonObjects】中获取bean实例
 			singletonObject = this.earlySingletonObjects.get(beanName);
+			// 如果二级缓存中不存在，并且允许早期引用的话
 			if (singletonObject == null && allowEarlyReference) {
+				// 加锁
 				synchronized (this.singletonObjects) {
 					// Consistent creation of early reference within full singleton lock
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
 						singletonObject = this.earlySingletonObjects.get(beanName);
 						if (singletonObject == null) {
-							// 三级缓存
+							// 尝试从三级缓存【singletonFactories】中获取bean实例
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
+								// singletonFactory 执行 getObject 方法，其实调用的是 getEarlyReference 方法
+								// 在执行 getEarlyReference 方法过程中，如果有bean后置处理器的话，则会返回代理对象，否则返回原有的bean(此时被循环引用的bean并没有执行赋值和初始化过程)
+								// 在AB循环依赖案例中，这一步为将先创建出来的A赋值给B中的a属性，
+								// 当B属性赋值以及初始化过程(在这个过程也有可能产生代理对象)完成之后就会执行下面重载的 getSingleton 方法，
+								// 将B从三级缓存中删除，放入一级缓存中，然后获取B实例的过程就结束了。
+								// 结论：如果执行到了这一步，就说明存在循环依赖！！！
 								singletonObject = singletonFactory.getObject();
+								// 将bean放入二级缓存【earlySingletonObjects】中，即，将三级缓存提升为二级缓存
 								this.earlySingletonObjects.put(beanName, singletonObject);
+								// 从三级缓存中【singletonFactories】删除
 								this.singletonFactories.remove(beanName);
 							}
 						}
@@ -249,7 +264,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
-					// 将当前单例标记对象标注为不再处于创建状态(即创建完成)
+					// 将当前单例标记对象标注为不再处于创建状态
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
