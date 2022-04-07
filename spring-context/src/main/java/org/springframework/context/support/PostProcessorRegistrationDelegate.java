@@ -104,6 +104,7 @@ final class PostProcessorRegistrationDelegate {
 			registryProcessors.addAll(currentRegistryProcessors);
 			// 在注解模式下，则会执行 配置类后置处理器【ConfigurationClassPostProcessor】 中的 postProcessBeanDefinitionRegistry 方法
 			// 用于加载配置类包路径下的所有bean定义信息
+			// 如果开启了AOP，会在此处向容器中注册 AnnotationAwareAspectJAutoProxyCreator 后置处理器的bean定义信息
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry, beanFactory.getApplicationStartup());
 			currentRegistryProcessors.clear();
 
@@ -257,7 +258,8 @@ final class PostProcessorRegistrationDelegate {
 		registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
 
 		// Next, register the BeanPostProcessors that implement Ordered.
-		// 接下来，注册实现 Ordered 的 BeanPostProcessor。
+		// 接下来，注册实现 Ordered 的 BeanPostProcessor，走getBean的流程往容器中添加bean后置处理器
+		// 如实现 AOP 功能时的 AnnotationAwareAspectJAutoProxyCreator 后置处理器
 		List<BeanPostProcessor> orderedPostProcessors = new ArrayList<>(orderedPostProcessorNames.size());
 		for (String ppName : orderedPostProcessorNames) {
 			BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);

@@ -16,27 +16,26 @@
 
 package org.springframework.aop.aspectj.annotation;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.aspectj.lang.reflect.PerClauseKind;
-
 import org.springframework.aop.Advisor;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Helper for retrieving @AspectJ beans from a BeanFactory and building
  * Spring Advisors based on them, for use with auto-proxying.
  *
  * @author Juergen Hoeller
- * @since 2.0.2
  * @see AnnotationAwareAspectJAutoProxyCreator
+ * @since 2.0.2
  */
 public class BeanFactoryAspectJAdvisorsBuilder {
 
@@ -83,12 +82,15 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	public List<Advisor> buildAspectJAdvisors() {
 		List<String> aspectNames = this.aspectBeanNames;
 
+		// 第一次执行此方法时为null，走if流程
 		if (aspectNames == null) {
+			// 双检查锁
 			synchronized (this) {
 				aspectNames = this.aspectBeanNames;
 				if (aspectNames == null) {
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
+					// 根据类型从工厂中获取bean名称，因为传入的时Object类型，即获取工厂中所有的beanName
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
 					for (String beanName : beanNames) {
@@ -101,14 +103,18 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						if (beanType == null) {
 							continue;
 						}
+						// 判断当前bean是否是切面，即是否标注了@Aspect注解
 						if (this.advisorFactory.isAspect(beanType)) {
+							// 将beanName添加aspectNames到集合中
 							aspectNames.add(beanName);
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+								// 获取切面中所有的 Advisor
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								if (this.beanFactory.isSingleton(beanName)) {
+									// 如果是单例的，将获取到的 Advisors 放到 advisorsCache 缓存中
 									this.advisorsCache.put(beanName, classAdvisors);
 								}
 								else {

@@ -27,6 +27,7 @@ public class Person {
 
 	@Override
 	public String toString() {
+		System.out.println("打印person");
 		return "Person{" +
 				"name='" + name + '\'' +
 				'}';

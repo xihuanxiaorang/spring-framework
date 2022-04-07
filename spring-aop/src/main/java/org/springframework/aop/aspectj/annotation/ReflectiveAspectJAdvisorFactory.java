@@ -16,33 +16,11 @@
 
 package org.springframework.aop.aspectj.annotation;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 import org.aopalliance.aop.Advice;
-import org.aspectj.lang.annotation.After;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.DeclareParents;
-import org.aspectj.lang.annotation.Pointcut;
-
+import org.aspectj.lang.annotation.*;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.MethodBeforeAdvice;
-import org.springframework.aop.aspectj.AbstractAspectJAdvice;
-import org.springframework.aop.aspectj.AspectJAfterAdvice;
-import org.springframework.aop.aspectj.AspectJAfterReturningAdvice;
-import org.springframework.aop.aspectj.AspectJAfterThrowingAdvice;
-import org.springframework.aop.aspectj.AspectJAroundAdvice;
-import org.springframework.aop.aspectj.AspectJExpressionPointcut;
-import org.springframework.aop.aspectj.AspectJMethodBeforeAdvice;
-import org.springframework.aop.aspectj.DeclareParentsAdvisor;
+import org.springframework.aop.aspectj.*;
 import org.springframework.aop.framework.AopConfigException;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.beans.factory.BeanFactory;
@@ -54,6 +32,14 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.util.StringUtils;
 import org.springframework.util.comparator.InstanceComparator;
+
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Factory that can create Spring AOP Advisors given AspectJ classes from
@@ -132,6 +118,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 				new LazySingletonAspectInstanceFactoryDecorator(aspectInstanceFactory);
 
 		List<Advisor> advisors = new ArrayList<>();
+		// 遍历切面类中的所有的方法(包括通知方法和从父类(Object)中继承过来的方法)
 		for (Method method : getAdvisorMethods(aspectClass)) {
 			// Prior to Spring Framework 5.2.7, advisors.size() was supplied as the declarationOrderInAspect
 			// to getAdvisor(...) to represent the "current position" in the declared methods list.
@@ -141,6 +128,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			// discovered via reflection in order to support reliable advice ordering across JVM launches.
 			// Specifically, a value of 0 aligns with the default value used in
 			// AspectJPrecedenceComparator.getAspectDeclarationOrder(Advisor).
+			// 分析如果当前方法是通知方法，则将其封装为 Advisor
 			Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, 0, aspectName);
 			if (advisor != null) {
 				advisors.add(advisor);
@@ -166,6 +154,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 	private List<Method> getAdvisorMethods(Class<?> aspectClass) {
 		List<Method> methods = new ArrayList<>();
+		// 获取切面类中所有的方法，标注了@Pointcut注解的方法除外
 		ReflectionUtils.doWithMethods(aspectClass, methods::add, adviceMethodFilter);
 		if (methods.size() > 1) {
 			methods.sort(adviceMethodComparator);
@@ -204,6 +193,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 		validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
 
+		// 获取每个通知方法的切入点
 		AspectJExpressionPointcut expressionPointcut = getPointcut(
 				candidateAdviceMethod, aspectInstanceFactory.getAspectMetadata().getAspectClass());
 		if (expressionPointcut == null) {
@@ -216,12 +206,14 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 	@Nullable
 	private AspectJExpressionPointcut getPointcut(Method candidateAdviceMethod, Class<?> candidateAspectClass) {
+		// 找到通知方法上标注的切面注解
 		AspectJAnnotation<?> aspectJAnnotation =
 				AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
 		if (aspectJAnnotation == null) {
 			return null;
 		}
 
+		// 创建一个切入点表达式
 		AspectJExpressionPointcut ajexp =
 				new AspectJExpressionPointcut(candidateAspectClass, new String[0], new Class<?>[0]);
 		ajexp.setExpression(aspectJAnnotation.getPointcutExpression());

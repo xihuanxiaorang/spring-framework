@@ -318,6 +318,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		do {
 			StartupStep processConfig = this.applicationStartup.start("spring.context.config-classes.parse");
 			// 解析配置类，经过这一步就已经将所有配置类包扫描路径下的中的bean定义信息都扫描进来了
+			// 此时还没有解析配置类上的 @Import 和 @ImportResource 注解
 			parser.parse(candidates);
 			parser.validate();
 
@@ -330,6 +331,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
+			// 通过配置类加载bean定义信息
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 			processConfig.tag("classCount", () -> String.valueOf(configClasses.size())).end();

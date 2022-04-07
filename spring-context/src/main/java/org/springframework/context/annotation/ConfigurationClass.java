@@ -16,12 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.beans.factory.parsing.Location;
 import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.beans.factory.parsing.ProblemReporter;
@@ -33,6 +27,8 @@ import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+
+import java.util.*;
 
 /**
  * Represents a user-defined {@link Configuration @Configuration} class.
@@ -201,12 +197,12 @@ final class ConfigurationClass {
 		this.importBeanDefinitionRegistrars.put(registrar, importingClassMetadata);
 	}
 
-	public Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> getImportBeanDefinitionRegistrars() {
-		return this.importBeanDefinitionRegistrars;
-	}
-
 	public Map<String, Class<? extends BeanDefinitionReader>> getImportedResources() {
 		return this.importedResources;
+	}
+
+	public Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> getImportBeanDefinitionRegistrars() {
+		return this.importBeanDefinitionRegistrars;
 	}
 
 	public void validate(ProblemReporter problemReporter) {

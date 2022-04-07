@@ -465,9 +465,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			// 让 BeanPostProcessors 有机会返回一个代理而不是目标 bean 实例
-			// 实现方法：循环遍历InstantiationAwareBeanPostProcessor接口的实现类，调用实现类中的postProcessBeforeInstantiation方法，
-			// 在执行下面创建bean实例之前自己来创建bean，如果自己真的创建一个不为null的实例(虽然说很少人这么做)，则再执行实现类中的postProcessAfterInitialization方法。
+			// 实现方法：循环遍历 InstantiationAwareBeanPostProcessor 接口的实现类，调用实现类中的 postProcessBeforeInstantiation 方法，
+			// 在执行下面创建bean实例之前自己来创建bean，如果自己真的创建一个不为null的实例(虽然说很少人这么做)，则再执行实现类中的 postProcessAfterInitialization 方法。
 			// 如果在这一步真的返回一个不为null的实例，那么就不再执行后续的流程直接返回；如果为null(默认值)，则执行下面的doCreatBean方法创建bean实例
+			// 如开启 AOP 功能时，在执行每一个bean的实例化之前都会执行 AbstractAutoProxyCreator 后置处理器中的 postProcessBeforeInstantiation 方法
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -546,7 +547,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
-		// 此处是处理循环依赖中的一步，将bean定义信息放入三级缓存【singletonFactories】中，并从二级缓存【earlySingletonObjects】中移除
+		// 是否允许提前暴露bean对象(即半成品对象)
+		// 此处是处理循环依赖中的一步，将bean包装成ObjectFactory对象放入三级缓存【singletonFactories】中，并从二级缓存【earlySingletonObjects】中移除
 		// mbd.isSingleton() -> 是否是单例
 		// this.allowCircularReferences -> 是否允许循环引用，默认为true
 		// isSingletonCurrentlyInCreation(beanName) -> 当前bean是否正在创建中
@@ -561,13 +563,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Initialize the bean instance.
-		// 初始化bean实例(给属性赋值以及调用BeanPostProcessor后置处理器+InitMethod方法)
+		// 初始化bean实例(给属性赋值以及调用 BeanPostProcessor 后置处理器+InitMethod方法)
 		// 属性赋值阶段：
-		// 	- 如果是使用注解的方式，自动装配 -> 则会在此处调用AutowiredAnnotationBeanPostProcessor给属性赋值
+		// 	- 如果是使用注解的方式，自动装配 -> 则会在此处调用 AutowiredAnnotationBeanPostProcessor 给属性赋值
 		// 初始化阶段：
-		//  - 如果bean实现了Aware接口，则会在此处调用ApplicationContextAwarePostProcessor后置处理器中的回调方法给bean中的属性赋值
+		//  - 如果bean实现了Aware接口，则会在此处调用 ApplicationContextAwarePostProcessor 后置处理器中的回调方法给bean中的属性赋值
 		//  - 执行InitMethod方法(InitializingBean 接口中的 afterPropertiesSet 方法+自定义的 InitMethod 方法)
-		//  - 如果使用了AOP的功能，则还会在此处调用AspectJAwareAdvisorAutoProxyCreator后置处理器创建bean的代理对象(默认使用jdk动态代理技术)
+		//  - 如果使用了AOP的功能，则还会在此处调用 AnnotationAwareAspectJAutoProxyCreator 后置处理器创建bean的代理对象(默认使用jdk动态代理技术)
 		Object exposedObject = bean;
 		try {
 			// 给bean实例的属性赋值
@@ -584,10 +586,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		// 如果允许提前暴露bean对象，则需要进行循环依赖检查
 		if (earlySingletonExposure) {
+			// earlySingletonReference 只有在检测到有循环依赖的情况下才不会空
 			Object earlySingletonReference = getSingleton(beanName, false);
 			if (earlySingletonReference != null) {
+				// 能进入这里，说明Spring检测到了循环依赖
 				if (exposedObject == bean) {
+					// exposedObject == bean，两者相等，说明 bean 在执行 initializeBean 进行初始化的时候，没有被后置处理器增强，还是原来的对象
 					exposedObject = earlySingletonReference;
 				}
 				else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)) {
@@ -936,6 +942,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
 		Object exposedObject = bean;
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+			// 如果有AOP的功能，AnnotationAwareAspectJAutoProxyCreator 后置处理器则会使用动态代理技术返回一个代理对象
+			// 不同于正常情况(bean是在初始化完成之后才创建出的代理对象)，在有循环依赖的情况下，此时就已经提前创建出代理对象返回并填充到其他对象的属性中
 			for (SmartInstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().smartInstantiationAware) {
 				exposedObject = bp.getEarlyBeanReference(exposedObject, beanName);
 			}
@@ -1087,6 +1095,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
+					// 执行所有 InstantiationAwareBeanPostProcessor 接口实现类的 postProcessBeforeInstantiation 方法
+					// 其中，如开启 AOP 功能时，AbstractAutoProxyCreator 后置处理器
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					if (bean != null) {
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
@@ -1792,6 +1802,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd == null || !mbd.isSynthetic()) {
 			// 循环遍历 BeanPostProcessor 接口的实现类，调用实现类中的 postProcessAfterInitialization 方法
 			// AOP的底层实现 -> 其中有一个关键的实现类 AspectJAwareAdvisorAutoProxyCreator 后置处理器，在此后置处理器的此方法中会使用动态代理技术创建bean的代理对象(默认使用jdk动态代理)
+			// 如果该bean存在循环依赖，则会在将三级缓存提升为二级缓存的时候就已经执行了AOP的动态代理功能，此处不再重复执行
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 

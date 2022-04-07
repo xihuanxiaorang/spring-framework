@@ -529,9 +529,11 @@ class ConfigurationClassParser {
 			for (SourceClass annotation : sourceClass.getAnnotations()) {
 				String annName = annotation.getMetadata().getClassName();
 				if (!annName.equals(Import.class.getName())) {
+					// 递归
 					collectImports(annotation, imports, visited);
 				}
 			}
+			// 将 @Import 注解的元数据保存
 			imports.addAll(sourceClass.getAnnotationAttributes(Import.class.getName(), "value"));
 		}
 	}
@@ -562,13 +564,14 @@ class ConfigurationClassParser {
 						}
 						if (selector instanceof DeferredImportSelector) {
 							this.deferredImportSelectorHandler.handle(configClass, (DeferredImportSelector) selector);
-						}
-						else {
+						} else {
 							String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
 							Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames, exclusionFilter);
 							processImports(configClass, currentSourceClass, importSourceClasses, exclusionFilter, false);
 						}
 					}
+					// 如果属于 ImportBeanDefinitionRegistrar 类型，比如说开启AOP功能时的 AspectJAutoProxyRegistrar
+					// 添加到 importBeanDefinitionRegistrars 集合中
 					else if (candidate.isAssignable(ImportBeanDefinitionRegistrar.class)) {
 						// Candidate class is an ImportBeanDefinitionRegistrar ->
 						// delegate to it to register additional bean definitions
@@ -577,8 +580,7 @@ class ConfigurationClassParser {
 								ParserStrategyUtils.instantiateClass(candidateClass, ImportBeanDefinitionRegistrar.class,
 										this.environment, this.resourceLoader, this.registry);
 						configClass.addImportBeanDefinitionRegistrar(registrar, currentSourceClass.getMetadata());
-					}
-					else {
+					} else {
 						// Candidate class not an ImportSelector or ImportBeanDefinitionRegistrar ->
 						// process it as an @Configuration class
 						this.importStack.registerImport(
