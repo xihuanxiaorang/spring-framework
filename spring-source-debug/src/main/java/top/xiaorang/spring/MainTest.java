@@ -8,6 +8,7 @@ public class MainTest {
 		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
 		A a = ctx.getBean("a", A.class);
 		System.out.println(a);
+		a.caculate();
 //		Person person = ctx.getBean(Person.class);
 //		System.out.println(person);
 //		Connection connection = ctx.getBean("connection", Connection.class);

@@ -192,7 +192,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
 								// singletonFactory 执行 getObject 方法，其实调用的是 getEarlyReference 方法
-								// 在执行 getEarlyReference 方法过程中，如果有bean后置处理器的话，则会返回代理对象，否则返回原有的bean(此时被循环引用的bean并没有执行赋值和初始化过程)
+								// 在执行 getEarlyReference 方法过程中，如果有bean后置处理器(AOP相关的)的话，则会返回代理对象，否则返回原有的半成品bean(此时被循环引用的bean还没有执行赋值和初始化过程)
 								// 在AB循环依赖案例中，这一步为将先创建出来的A赋值给B中的a属性，
 								// 当B属性赋值以及初始化过程(在这个过程也有可能产生代理对象)完成之后就会执行下面重载的 getSingleton 方法，
 								// 将B从三级缓存中删除，放入一级缓存中，然后获取B实例的过程就结束了。

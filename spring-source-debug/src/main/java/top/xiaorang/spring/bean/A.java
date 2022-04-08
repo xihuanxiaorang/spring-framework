@@ -10,6 +10,11 @@ public class A {
 	public A() {
 	}
 
+	public void caculate() {
+		System.out.println("计算....");
+		throw new RuntimeException("故意发生异常");
+	}
+
 	public A(B b) {
 		this.b = b;
 	}
