@@ -68,7 +68,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
 		// 创建用于读取注解bean定义信息的读取器
 		// 同时注册了很多后置处理器的bean定义信息
-		// 其中以两个核心的后置处理器(ConfigurationClassPostProcessor【配置类后置处理器】 + AutowiredAnnotationBeanPostProcessor【自动装配后置处理器】)最为重要
+		// 其中核心的后置处理器 => ConfigurationClassPostProcessor【配置类后置处理器】 + AutowiredAnnotationBeanPostProcessor【自动装配后置处理器】+ EventListenerMethodProcessor【事件监听后置处理器】
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
 		// 创建类路径下的bean定义信息扫描器
@@ -94,7 +94,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		// 创建容器
 		// 同时注册了很多后置处理器的bean定义信息
-		// 其中以两个核心的后置处理器(ConfigurationClassPostProcessor【配置类后置处理器】 + AutowiredAnnotationBeanPostProcessor【自动装配后置处理器】)最为重要
+		// 	- ConfigurationClassPostProcessor【配置类后置处理器】
+		// 	- AutowiredAnnotationBeanPostProcessor【自动装配后置处理器】)
+		// 	- EventListenerMethodProcessor【事件监听后置处理器】
 		this();
 		// 注册主配置类的bean定义信息
 		register(componentClasses);

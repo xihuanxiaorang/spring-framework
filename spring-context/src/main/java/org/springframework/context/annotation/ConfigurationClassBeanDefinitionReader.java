@@ -139,14 +139,16 @@ class ConfigurationClassBeanDefinitionReader {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
+			// 加载 @Bean 注解标注的bean定义信息
+			// - 如开启事务功能时，ProxyTransactionManagementConfiguration 配置类中的3个bean【transactionAdvisor、transactionAttributeSource、transactionInterceptor】
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
 
 		// 加载 @ImportResource 注解上所标注的资源文件里的bean定义信息
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
-		// 加载 @Import 注解上的bean定义信息
-		// 如果开启AOP功能，importBeanDefinitionRegistrars 集合中包含 AspectJAutoProxyRegistrar，
-		// 执行其中 registerBeanDefinitions 方法，往工厂中注入bean定义信息
+		// 加载 @Import 注解上的bean定义信息，执行 ImportBeanDefinitionRegistrar 中的 registerBeanDefinitions 方法，向容器中注册bean定义信息
+		// - 如开启AOP功能时的 AspectJAutoProxyRegistrar，向容器中注册 AnnotationAwareAspectJAutoProxyCreator 后置处理器的bean定义信息
+		// - 如开启事务功能时的 AutoProxyRegistrar，向容器中注册 InfrastructureAdvisorAutoProxyCreator 后置处理器的bean定义信息
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 
@@ -285,6 +287,7 @@ class ConfigurationClassBeanDefinitionReader {
 			logger.trace(String.format("Registering bean definition for @Bean method %s.%s()",
 					configClass.getMetadata().getClassName(), beanName));
 		}
+		// 向容器中注册 @Bean 注解标注的方法所对应的bean定义信息
 		this.registry.registerBeanDefinition(beanName, beanDefToRegister);
 	}
 
@@ -385,8 +388,9 @@ class ConfigurationClassBeanDefinitionReader {
 	}
 
 	private void loadBeanDefinitionsFromRegistrars(Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> registrars) {
-		// 注册bean定义信息，如果开启了AOP，则会执行 AspectJAutoProxyRegistrar 类中的 registerBeanDefinitions 方法
-		// 向容器中注册 AnnotationAwareAspectJAutoProxyCreator 后置处理器的bean定义信息
+		// 注册bean定义信息
+		// - 如开启AOP功能时的 AspectJAutoProxyRegistrar，向容器中注册 AnnotationAwareAspectJAutoProxyCreator 后置处理器的bean定义信息
+		// - 如开启事务功能时的 AutoProxyRegistrar，向容器中注册 InfrastructureAdvisorAutoProxyCreator 后置处理器的bean定义信息
 		registrars.forEach((registrar, metadata) ->
 				registrar.registerBeanDefinitions(metadata, this.registry, this.importBeanNameGenerator));
 	}

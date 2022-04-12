@@ -104,7 +104,7 @@ final class PostProcessorRegistrationDelegate {
 			registryProcessors.addAll(currentRegistryProcessors);
 			// 在注解模式下，则会执行 配置类后置处理器【ConfigurationClassPostProcessor】 中的 postProcessBeanDefinitionRegistry 方法
 			// 用于加载配置类包路径下的所有bean定义信息
-			// 如果开启了AOP，会在此处向容器中注册 AnnotationAwareAspectJAutoProxyCreator 后置处理器的bean定义信息
+			// 如果开启了AOP，会在此处使用 ConfigurationClassPostProcessor 解析 Import 注解时向容器中注册 AnnotationAwareAspectJAutoProxyCreator 后置处理器的bean定义信息
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry, beanFactory.getApplicationStartup());
 			currentRegistryProcessors.clear();
 

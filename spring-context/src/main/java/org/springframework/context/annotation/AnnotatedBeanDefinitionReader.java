@@ -85,9 +85,10 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
-		// 事先注册有关注解的核心组件(其中以 ConfigurationClassPostProcessor + AutowiredAnnotationBeanPostProcessor 两个后置处理器最为重要)的bean定义信息
+		// 事先注册有关的核心组件(其中以 ConfigurationClassPostProcessor + AutowiredAnnotationBeanPostProcessor + EventListenerMethodProcessor )的bean定义信息
 		// 其中，ConfigurationClassPostProcessor(配置类后置处理器)用于加载包扫描路径下的所有bean定义信息，包括被@Component、@Bean、@Import等注解标注的bean
 		// AutowiredAnnotationBeanPostProcessor(自动装配注解后置处理器)，用于后续流程中给标注@Autowired注解的属性或者set方法赋值
+		// EventListenerMethodProcessor(事件监听器后置处理器)
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 

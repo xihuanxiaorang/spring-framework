@@ -274,7 +274,7 @@ class ConfigurationClassParser {
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			for (AnnotationAttributes componentScan : componentScans) {
 				// The config class is annotated with @ComponentScan -> perform the scan immediately
-				// 使用组件扫描器扫描配置类包扫描路径下的所有bean定义信息(这一步很重要)
+				// 使用组件扫描器扫描配置类包扫描路径下的所有bean定义信息并注册到容器中(这一步很重要)
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed
@@ -291,7 +291,10 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @Import annotations
-		// 处理任何 @Import 注解
+		// 处理任何 @Import 注解，
+		// getImports() ===> 递归调用获取配置类上所有 @Import 注解属性中所对应的类
+		//  - 如开启AOP功能时的 AspectJAutoProxyRegistrar
+		//  - 如开启事务功能时的 TransactionManagementConfigurationSelector
 		processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
 
 		// Process any @ImportResource annotations
@@ -308,7 +311,7 @@ class ConfigurationClassParser {
 		}
 
 		// Process individual @Bean methods
-		// 处理单个 @Bean 注解
+		// 处理 @Bean 注解标注的方法
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
 			configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
@@ -555,6 +558,7 @@ class ConfigurationClassParser {
 				for (SourceClass candidate : importCandidates) {
 					if (candidate.isAssignable(ImportSelector.class)) {
 						// Candidate class is an ImportSelector -> delegate to it to determine imports
+						// 如果从 @Import 注解中解析是 ImportSelector 类型，如开启事务功能时的 TransactionManagementConfigurationSelector
 						Class<?> candidateClass = candidate.loadClass();
 						ImportSelector selector = ParserStrategyUtils.instantiateClass(candidateClass, ImportSelector.class,
 								this.environment, this.resourceLoader, this.registry);
@@ -565,13 +569,15 @@ class ConfigurationClassParser {
 						if (selector instanceof DeferredImportSelector) {
 							this.deferredImportSelectorHandler.handle(configClass, (DeferredImportSelector) selector);
 						} else {
+							// 获取真正导入的类，如开启事务功能时的 AutoProxyRegistrar 和 ProxyTransactionManagementConfiguration
 							String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
 							Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames, exclusionFilter);
+							// 递归处理导入的类
 							processImports(configClass, currentSourceClass, importSourceClasses, exclusionFilter, false);
 						}
 					}
-					// 如果属于 ImportBeanDefinitionRegistrar 类型，比如说开启AOP功能时的 AspectJAutoProxyRegistrar
-					// 添加到 importBeanDefinitionRegistrars 集合中
+					// 如果属于 ImportBeanDefinitionRegistrar 类型，添加到 importBeanDefinitionRegistrars 集合中
+					// 比如说开启AOP功能时的 AspectJAutoProxyRegistrar，开启事务功能时的 AutoProxyRegistrar
 					else if (candidate.isAssignable(ImportBeanDefinitionRegistrar.class)) {
 						// Candidate class is an ImportBeanDefinitionRegistrar ->
 						// delegate to it to register additional bean definitions
@@ -585,6 +591,8 @@ class ConfigurationClassParser {
 						// process it as an @Configuration class
 						this.importStack.registerImport(
 								currentSourceClass.getMetadata(), candidate.getMetadata().getClassName());
+						// 如果候选类不是 ImportSelector 或者 ImportBeanDefinitionRegistrar 类型，则将其作为配置类处理
+						// 如开启事务功能时的 ProxyTransactionManagementConfiguration
 						processConfigurationClass(candidate.asConfigClass(configClass), exclusionFilter);
 					}
 				}

@@ -16,8 +16,20 @@ dependencies {
     compile(project(":spring-context"))
     // 引入aop&切面
     compile(project(":spring-aspects"))
+    // 引入jdbc
+    compile(project(":spring-jdbc"))
+    // 引入事务
+    compile(project(":spring-tx"))
     // 引入mysql驱动
     implementation 'mysql:mysql-connector-java:8.0.28'
+    // 引入mybatis
+    implementation 'org.mybatis:mybatis:3.5.9'
+    // 引入mybatis-spring整合包
+    implementation 'org.mybatis:mybatis-spring:2.0.7'
+    // 引入druid连接池包
+    implementation 'com.alibaba:druid:1.2.8'
+    // 引入日志包
+    implementation 'log4j:log4j:1.2.17'
 }
 
 test {

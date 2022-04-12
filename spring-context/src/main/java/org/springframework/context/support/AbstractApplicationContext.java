@@ -547,8 +547,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Register bean processors that intercept bean creation.
 				// 注册bean后置处理器，向容器中添加bean后置处理器，在后面初始化bean实例时会被用到（这一步很重要）
-				// 开启了AOP功能时，在这一步就已经将AOP中的切面信息以及所有的 Advisor 都已经准备，
-				// 在创建bean的初始化阶段，会调用此时注册的AOP后置处理器创建出bean对应的代理对象
+				// - 开启了AOP功能时，在这一步就已经将AOP中的切面信息以及所有的 Advisor 都已经准备，
+				//   在创建bean的初始化阶段，会调用此时注册的AOP后置处理器创建出bean对应的代理对象
+				// - 开启了事务功能时，在这一步
 				registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
