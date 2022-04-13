@@ -156,6 +156,7 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	@Override
 	@Nullable
 	protected TransactionAttribute findTransactionAttribute(Method method) {
+		// 解析事务属性返回
 		return determineTransactionAttribute(method);
 	}
 
@@ -171,7 +172,9 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	 */
 	@Nullable
 	protected TransactionAttribute determineTransactionAttribute(AnnotatedElement element) {
+		// 遍历事务注解解析器集合，其中的解析器集合在该类实例化(看上面的构造方法)的时候就已经填充
 		for (TransactionAnnotationParser parser : this.annotationParsers) {
+			// 使用解析器解析事务属性
 			TransactionAttribute attr = parser.parseTransactionAnnotation(element);
 			if (attr != null) {
 				return attr;

@@ -44,6 +44,7 @@ abstract class TransactionAttributeSourcePointcut extends StaticMethodMatcherPoi
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		// 判断是否标注 @Transactional 注解，标注的地点(方法上 > 实现类上 > 接口方法上 > 接口上)
 		return (tas == null || tas.getTransactionAttribute(method, targetClass) != null);
 	}
 

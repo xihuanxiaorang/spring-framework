@@ -2,6 +2,7 @@ package top.xiaorang.spring.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.xiaorang.spring.entity.Jobs;
 import top.xiaorang.spring.mapper.JobMapper;
 import top.xiaorang.spring.service.JobService;
@@ -12,6 +13,7 @@ import java.util.List;
  * @author liulei
  */
 @Service
+@Transactional
 public class JobServiceImpl implements JobService {
 	@Autowired
 	private JobMapper jobMapper;

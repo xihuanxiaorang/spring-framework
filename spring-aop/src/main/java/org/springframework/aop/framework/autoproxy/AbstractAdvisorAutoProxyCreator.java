@@ -93,11 +93,12 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 * @see #extendAdvisors
 	 */
 	protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
-		// 从缓存中获取先前已经从切面类中解析出来的 Advisor
+		// 获取所有的候选增强器
+		// 如开启事务时的 BeanFactoryTransactionAttributeSourceAdvisor
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
-		// 过滤出可以应用于指定 bean 的所有 Advisor
+		// 筛选可用的增强器
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
-		// 在过滤出来的 Advisor 集合的最前面添加了一个特殊的方法拦截器 ExposeInvocationInterceptor
+		// AOP => 在过滤出来的 Advisor 集合的最前面添加了一个特殊的方法拦截器 ExposeInvocationInterceptor，事务不会添加
 		extendAdvisors(eligibleAdvisors);
 		if (!eligibleAdvisors.isEmpty()) {
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
@@ -111,6 +112,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 */
 	protected List<Advisor> findCandidateAdvisors() {
 		Assert.state(this.advisorRetrievalHelper != null, "No BeanFactoryAdvisorRetrievalHelper available");
+		// 找出所有的增强器
 		return this.advisorRetrievalHelper.findAdvisorBeans();
 	}
 

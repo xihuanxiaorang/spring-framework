@@ -226,7 +226,8 @@ public abstract class AopUtils {
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
 		}
-
+		// 获取方法的匹配器
+		// 如果开启事务功能，其实就是该方法匹配器就是 TransactionAttributeSourcePointcut 本身
 		MethodMatcher methodMatcher = pc.getMethodMatcher();
 		if (methodMatcher == MethodMatcher.TRUE) {
 			// No need to iterate the methods if we're matching any method anyway...
@@ -245,6 +246,7 @@ public abstract class AopUtils {
 		classes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetClass));
 
 		for (Class<?> clazz : classes) {
+			// 一一比对类中所有的方法，使用 TransactionAttributeSourcePointcut 中的 matches 方法
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
 			for (Method method : methods) {
 				if (introductionAwareMethodMatcher != null ?
@@ -285,6 +287,8 @@ public abstract class AopUtils {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
 		else if (advisor instanceof PointcutAdvisor) {
+			// BeanFactoryTransactionAttributeSourceAdvisor 属于 PointcutAdvisor，
+			// 获取其中的 pointcut -> TransactionAttributeSourcePointcut
 			PointcutAdvisor pca = (PointcutAdvisor) advisor;
 			return canApply(pca.getPointcut(), targetClass, hasIntroductions);
 		}
@@ -318,6 +322,7 @@ public abstract class AopUtils {
 				// already processed
 				continue;
 			}
+			// 判断是否匹配
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}
