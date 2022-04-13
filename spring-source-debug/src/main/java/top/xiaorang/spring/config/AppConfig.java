@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
@@ -57,6 +59,13 @@ public class AppConfig {
 		sqlSessionFactoryBean.setConfigLocation(resource);
 		sqlSessionFactoryBean.setTypeAliasesPackage(typeAliasesPackage);
 		return sqlSessionFactoryBean;
+	}
+
+	@Bean
+	public TransactionManager transactionManager() {
+		DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
+		dataSourceTransactionManager.setDataSource(dataSource());
+		return dataSourceTransactionManager;
 	}
 
 	public String getDriverClassName() {
