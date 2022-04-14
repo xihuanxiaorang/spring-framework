@@ -63,9 +63,7 @@ public class AppConfig {
 
 	@Bean
 	public TransactionManager transactionManager() {
-		DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
-		dataSourceTransactionManager.setDataSource(dataSource());
-		return dataSourceTransactionManager;
+		return new DataSourceTransactionManager(dataSource());
 	}
 
 	public String getDriverClassName() {

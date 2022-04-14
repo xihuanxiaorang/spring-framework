@@ -8,4 +8,8 @@
 		select *
 		from jobs;
 	</select>
+
+	<insert id="saveJobs" parameterType="Jobs">
+		insert into jobs values (#{jobId}, #{jobTitle}, #{minSalary}, #{maxSalary});
+	</insert>
 </mapper>

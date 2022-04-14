@@ -14,4 +14,10 @@ public interface JobService {
 	 * @return 职位集合
 	 */
 	List<Jobs> selectJobs();
+
+	/**
+	 * 保存职位
+	 * @param jobs 职位
+	 */
+	void saveJobs(Jobs jobs);
 }

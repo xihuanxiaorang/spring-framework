@@ -194,8 +194,10 @@ public abstract class AopUtils {
 	 */
 	public static Method getMostSpecificMethod(Method method, @Nullable Class<?> targetClass) {
 		Class<?> specificTargetClass = (targetClass != null ? ClassUtils.getUserClass(targetClass) : null);
+		// 获取最为准确的方法，即如果传入的 method 只是一个接口方法，则会去找其实现类的同一方法进行解析
 		Method resolvedMethod = ClassUtils.getMostSpecificMethod(method, specificTargetClass);
 		// If we are dealing with method with generic parameters, find the original method.
+		// 如果当前方法是一个泛型方法，则会找 class 文件中实际实现的方法
 		return BridgeMethodResolver.findBridgedMethod(resolvedMethod);
 	}
 

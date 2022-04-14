@@ -6,8 +6,18 @@ package top.xiaorang.spring.entity;
 public class Jobs {
 	private String jobId;
 	private String jobTitle;
-	private String minSalary;
-	private String maxSalary;
+	private Integer minSalary;
+	private Integer maxSalary;
+
+	public Jobs() {
+	}
+
+	public Jobs(String jobId, String jobTitle, Integer minSalary, Integer maxSalary) {
+		this.jobId = jobId;
+		this.jobTitle = jobTitle;
+		this.minSalary = minSalary;
+		this.maxSalary = maxSalary;
+	}
 
 	public String getJobId() {
 		return jobId;
@@ -25,19 +35,19 @@ public class Jobs {
 		this.jobTitle = jobTitle;
 	}
 
-	public String getMinSalary() {
+	public Integer getMinSalary() {
 		return minSalary;
 	}
 
-	public void setMinSalary(String minSalary) {
+	public void setMinSalary(Integer minSalary) {
 		this.minSalary = minSalary;
 	}
 
-	public String getMaxSalary() {
+	public Integer getMaxSalary() {
 		return maxSalary;
 	}
 
-	public void setMaxSalary(String maxSalary) {
+	public void setMaxSalary(Integer maxSalary) {
 		this.maxSalary = maxSalary;
 	}
 

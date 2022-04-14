@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.xiaorang.spring.mapper.OrderMapper">
+	<!--	如果mybatis-config配置文件中没有配置typeAliases的话，这里会变红，不影响使用-->
+	<select id="selectOrders" resultType="Order">
+		select *
+		from `order`;
+	</select>
+
+	<insert id="saveOrder" parameterType="Order">
+		insert into `order` values (#{orderId}, #{orderName});
+	</insert>
+</mapper>
